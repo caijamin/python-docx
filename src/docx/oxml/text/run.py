@@ -8,8 +8,9 @@ from docx.oxml.drawing import CT_Drawing
 from docx.oxml.ns import qn
 from docx.oxml.simpletypes import ST_BrClear, ST_BrType
 from docx.oxml.text.font import CT_RPr
-from docx.oxml.xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrMore, ZeroOrOne
+from docx.oxml.xmlchemy import BaseOxmlElement, OptionalAttribute, ZeroOrMore, ZeroOrOne, RequiredAttribute
 from docx.shared import TextAccumulator
+from docx.oxml import OxmlElement
 
 if TYPE_CHECKING:
     from docx.oxml.shape import CT_Anchor, CT_Inline
@@ -51,6 +52,30 @@ class CT_R(BaseOxmlElement):
         drawing = self._add_drawing()
         drawing.append(inline_or_anchor)
         return drawing
+    
+
+    def add_comm(self, author, comment_part, initials, dtime, comment_text):
+        comment = comment_part.add_comment(author, initials, dtime)
+        comment._add_p(comment_text)
+        # _r = self.add_r()
+        self.add_comment_reference(comment._id)
+        self.link_comment(comment._id)
+
+        return comment
+
+    def link_comment(self, _id):
+        rStart = OxmlElement('w:commentRangeStart')
+        rStart._id = _id
+        rEnd = OxmlElement('w:commentRangeEnd')
+        rEnd._id = _id
+        self.addprevious(rStart)
+        self.addnext(rEnd)
+
+    def add_comment_reference(self, _id):
+        reference = OxmlElement('w:commentReference')
+        reference._id = _id
+        self.append(reference)
+        return reference
 
     def clear_content(self) -> None:
         """Remove all child elements except a `w:rPr` element if present."""
@@ -58,6 +83,12 @@ class CT_R(BaseOxmlElement):
         for e in self.xpath("./*[not(self::w:rPr)]"):
             self.remove(e)
 
+    def add_comment_reference(self, _id):
+        reference = OxmlElement('w:commentReference')
+        reference._id = _id
+        self.append(reference)
+        return reference
+    
     @property
     def inner_content_items(self) -> List[str | CT_Drawing | CT_LastRenderedPageBreak]:
         """Text of run, possibly punctuated by `w:lastRenderedPageBreak` elements."""

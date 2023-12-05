@@ -15,6 +15,11 @@ from docx.shared import StoryChild
 from docx.styles.style import CharacterStyle
 from docx.text.font import Font
 from docx.text.pagebreak import RenderedPageBreak
+from datetime import datetime
+
+from docx.oxml.ns import qn
+from docx.opc.part import *
+from .comment import Comment
 
 if TYPE_CHECKING:
     from docx.enum.text import WD_UNDERLINE
@@ -94,6 +99,15 @@ class Run(StoryChild):
         """
         t = self._r.add_t(text)
         return _Text(t)
+    
+
+    def add_comment(self, text, author='python-docx', initials='pd', dtime=None):
+        comment_part = self.part._comments_part.element
+        if dtime is None:
+            dtime = str(datetime.now()).replace(' ', 'T')
+        comment = self._r.add_comm(author, comment_part, initials, dtime, text)
+
+        return comment
 
     @property
     def bold(self) -> bool | None:
@@ -239,6 +253,14 @@ class Run(StoryChild):
     @underline.setter
     def underline(self, value: bool):
         self.font.underline = value
+
+    @property
+    def comments(self):
+        comment_part = self._parent._parent.part._comments_part.element
+        comment_refs = self._element.findall(qn('w:commentReference'))
+        ids = [int(ref.get(qn('w:id'))) for ref in comment_refs]
+        coms = [com for com in comment_part if com._id in ids]
+        return [Comment(com, comment_part) for com in coms]
 
 
 class _Text:

@@ -16,6 +16,9 @@ from docx.text.pagebreak import RenderedPageBreak
 from docx.text.parfmt import ParagraphFormat
 from docx.text.run import Run
 
+from datetime import datetime
+import re
+
 if TYPE_CHECKING:
     from docx.enum.text import WD_PARAGRAPH_ALIGNMENT
     from docx.oxml.text.paragraph import CT_P
@@ -46,6 +49,15 @@ class Paragraph(StoryChild):
         if style:
             run.style = style
         return run
+    
+    def add_comment(self, text, author='python-docx', initials='pd', dtime=None ,rangeStart=0, rangeEnd=0, comment_part=None):
+        if comment_part is None:
+            comment_part = self.part._comments_part.element
+        if dtime is None:
+            dtime = str( datetime.now() ).replace(' ', 'T')
+        comment =  self._p.add_comm(author, comment_part, initials, dtime, text, rangeStart, rangeEnd)
+
+        return comment
 
     @property
     def alignment(self) -> WD_PARAGRAPH_ALIGNMENT | None:
@@ -151,6 +163,11 @@ class Paragraph(StoryChild):
     def style(self, style_or_name: str | ParagraphStyle | None):
         style_id = self.part.get_style_id(style_or_name, WD_STYLE_TYPE.PARAGRAPH)
         self._p.style = style_id
+
+    @property
+    def comments(self):
+        runs_comments = [run.comments for run in self.runs]
+        return [comment for comments in runs_comments for comment in comments]
 
     @property
     def text(self) -> str:

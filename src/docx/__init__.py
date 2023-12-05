@@ -31,6 +31,7 @@ from docx.parts.image import ImagePart
 from docx.parts.numbering import NumberingPart
 from docx.parts.settings import SettingsPart
 from docx.parts.styles import StylesPart
+from docx.parts.comments import CommentsPart
 
 
 def part_class_selector(content_type: str, reltype: str) -> Type[Part] | None:
@@ -47,6 +48,7 @@ PartFactory.part_type_for[CT.WML_HEADER] = HeaderPart
 PartFactory.part_type_for[CT.WML_NUMBERING] = NumberingPart
 PartFactory.part_type_for[CT.WML_SETTINGS] = SettingsPart
 PartFactory.part_type_for[CT.WML_STYLES] = StylesPart
+PartFactory.part_type_for[CT.WML_COMMENTS] = CommentsPart
 
 del (
     CT,
@@ -58,5 +60,6 @@ del (
     PartFactory,
     SettingsPart,
     StylesPart,
+    CommentsPart,
     part_class_selector,
 )

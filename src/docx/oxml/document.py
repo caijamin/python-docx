@@ -28,7 +28,7 @@ class CT_Document(BaseOxmlElement):
         `w:sectPr` elements appear in document order. The last one is always
         `w:body/w:sectPr`, all preceding are `w:p/w:pPr/w:sectPr`.
         """
-        xpath = "./w:body/w:p/w:pPr/w:sectPr | ./w:body/w:sectPr"
+        xpath = "./w:body/w:p/w:pPr/w:sectPr | ./w:body/w:sectPr | ./w:body/w:sdt/w:sdtContent/w:p/w:pPr/w:sectPr"
         return self.xpath(xpath)
 
 
